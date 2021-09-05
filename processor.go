@@ -7,6 +7,7 @@ import (
 	"github.com/ProjectAthenaa/sonic-core/fasttls/tls"
 	client_proxy "github.com/ProjectAthenaa/sonic-core/protos/clientProxy"
 	"github.com/prometheus/common/log"
+	"time"
 )
 
 type server struct {
@@ -39,7 +40,6 @@ func (s *server) listen() {
 			}
 			log.Info("Received Request")
 
-
 			if _, ok := newReq.Headers["STOP"]; ok {
 				s.cancel()
 				continue
@@ -53,12 +53,14 @@ func (s *server) listen() {
 func (s *server) process(clientReq *client_proxy.Request) {
 	req := convertToRequest(clientReq)
 
-	resp, err := s.client.DoCtx(s.ctx, req)
+	ctx, _ := context.WithDeadline(context.Background(), time.Now().Add(time.Second*10))
+	req.UseHttp2 = false
+	s.client.ResetH2()
+	resp, err := s.client.DoCtx(ctx, req)
 	if err != nil {
-		_ = s.stream.Send(&client_proxy.Response{Headers: map[string]string{"ERROR": fmt.Sprint(err)}})
+		_ = s.stream.Send(&client_proxy.Response{TaskID: clientReq.TaskID, Headers: map[string]string{"ERROR": fmt.Sprint(err)}})
 		return
 	}
-
 	clientResp := convertToResponse(resp, clientReq.TaskID)
 
 	_ = s.stream.Send(clientResp)

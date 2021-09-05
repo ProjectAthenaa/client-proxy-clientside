@@ -3,7 +3,7 @@ module client-proxy-clientside
 go 1.17
 
 require (
-	github.com/ProjectAthenaa/sonic-core v0.0.0-20210905093358-fd2f6355f09a
+	github.com/ProjectAthenaa/sonic-core v0.0.0-20210905184713-940694bfb608
 	github.com/mitchellh/go-ps v1.0.0
 	github.com/prometheus/common v0.4.0
 	google.golang.org/grpc v1.40.0
